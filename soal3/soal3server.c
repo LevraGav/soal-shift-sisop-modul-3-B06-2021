@@ -13,41 +13,33 @@ char sent[1024];
 char recieve[1024];
 char buff[1024];
 char user[30];
+char command[100];
 bool loggedIn = false;
 
 void addUser(char str[]) {
     printf("ADDUSER\n");
     char idpass [100];
-    char *token = strtok(str, " ");
-    char id[30];
-    strcpy(id,token);
-    char password[30];
-    while (token!=NULL) {
-        token = strtok(NULL, " ");
-    }
-    strcpy(password,token);
-    sprintf(idpass,"%s:%s",id,password);
+    strcpy(idpass,str);
+    printf("%s\n",idpass);
     FILE* file = fopen("akun.txt", "a") ;
     fputs(idpass,file);
     fclose(file);
 }
 
 bool LogUser(char str[]) {
+    printf("LogUser\n");
     char idpass [100];
-    char *token = strtok(str, " ");
-    char id[30];
-    strcpy(id,token);
-    char password[30];
-    while (token!=NULL) {
-        token = strtok(NULL, " ");
-    }
-    strcpy(password,token);
-    sprintf(idpass,"%s:%s",id,password);
+    strcpy(idpass,str);
+    printf("%s\n",idpass);
+    char *id;
+    char tok[2]=":";
     char find[100];
-    FILE* file = fopen("akun.txt","a");
+    FILE* file = fopen("akun.txt","r");
     while (fgets(find,100,file)) {
+        printf("%s %s\n",find,idpass);
         if (strcmp(find,idpass)==0) {
             fclose(file);
+            id = strtok(idpass,tok);
             strcpy(user,id);
             loggedIn = true;
             return true;
@@ -102,34 +94,43 @@ int main(int argc, char const *argv[]) {
             strcpy(sent,"Register / Login?\n");
             printf("%s\n",sent);
             send(new_socket,sent,strlen(sent),0);
+            memset(sent,0,sizeof(sent));
         }
         else {
-            read(new_socket,recieve,1024);
-            printf("Recieve: %s\n",recieve);
+            memset(command,0,sizeof(command));
+            read(new_socket,command,100);
+            printf("Recieve: %s\n",command);
             if(connectionCheck()) {
-                if (strcmp(recieve,"register")==0) {
+                if (strcmp(command,"register")==0) {
                     printf("register\n");
-                    strcpy(sent,"Register\nInput ID dan password dipisah oleh spasi\n Ex: Bayu 123");
+                    strcpy(sent,"Register\nInput ID dan password dipisah oleh spasi\nEx: Bayu 123");
                     send(new_socket,sent,strlen(sent),0);
+                    memset(sent,0,sizeof(sent));
                     read(new_socket,recieve,1024);
                     addUser(recieve);
+                    memset(recieve,0,sizeof(recieve));
                     strcpy(sent,"Registrasi berhasil, silahkan login!\n");
                     send(new_socket,sent,strlen(sent),0);
+                    memset(sent,0,sizeof(sent));
                     continue;
                 }
-                if (strcmp(recieve,"login")==0) {
+                if (strcmp(command,"login")==0) {
                     printf("login\n");
-                    strcpy(sent,"Login\nInput ID dan password dipisah oleh spasi\n Ex: Bayu 123");
+                    strcpy(sent,"Login\nInput ID dan password dipisah oleh spasi\nEx: Bayu 123");
                     send(new_socket,sent,strlen(sent),0);
+                    memset(sent,0,sizeof(sent));
                     read(new_socket,recieve,1024);
                     if (LogUser(recieve)) {
-                        strcpy(sent,"Login sukses\n");
+                        sprintf(sent,"Login sukses,selamat datang %s\n",user);
                         send(new_socket,sent,strlen(sent),0);
                     }
                     else {
                         strcpy(sent,"ID atau password salah\n");
                         send(new_socket,sent,strlen(sent),0);
                     }
+                    memset(sent,0,sizeof(sent));
+                    memset(recieve,0,sizeof(recieve));
+                    continue;
                 }
             }
             else {
