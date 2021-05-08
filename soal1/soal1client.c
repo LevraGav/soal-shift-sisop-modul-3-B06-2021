@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <stdbool.h>
+#include <fcntl.h>
 #define PORT 8080
 
 char sent[1024];
@@ -55,32 +56,35 @@ void resR() {
     memset(recieve,0,sizeof(recieve));
 }
 
-void send_file(FILE *fp){
-  int n;
-  char data[1024] = {0};
-
-  while(fgets(data, 1024, fp) != NULL) {
-    if (send(strdup, data, sizeof(data), 0) == -1) {
-      perror("[-]Error in sending file.");
-      exit(1);
-    }
-    bzero(data, 1024);
-  }
-}
-
-void sends(int socket,char data[]) {
-    send(socket,data,strlen(data),0);
+void sends(char data[]) {
+    send(soc,data,strlen(data),0);
     memset(sent,0,sizeof(sent));
 }
 
-void* addFiles(void* arg) {
+void addFiles() {
+    char temp[1024];
     for (int i=0;i<3;i++) {
         resR();
-        char temp[1024];
-        scanf("%[^\n]s",temp);
+        scanf("%s",temp);
+        temp[strcspn(temp,"\n")] =0;
+        sends(temp);
     }
-    FILE* file = fopen(temp, "r");
-    send_file(file);
+    FILE *sfd = fopen(temp,"rb");  
+    char data[1024] = {0};
+    int n;
+    while(1){
+        memset(data,0,1024);
+        n=fread(sfd,data,1024);
+        //printf("%d",n);
+        send(soc,data,n,0);
+        if(n==0) {
+            break;
+        }
+        break;
+    }
+    printf("break"); 
+    fclose(sfd);
+    resR();
 }
 
 int main(int argc, char const *argv[]) {
@@ -113,6 +117,7 @@ int main(int argc, char const *argv[]) {
 
     while(1)
     {
+        pthread_t thread;
         char command[100];
         scanf("%s",command);
         strcpy(sent,command);
@@ -126,7 +131,7 @@ int main(int argc, char const *argv[]) {
                 Log();
             }
             else if (strcmp(command,"add")==0 && loggedIn) {
-                
+                addFiles();
             }
             else {
                 printf("Command salah,perhatikan penulisan anda\n");
@@ -135,3 +140,4 @@ int main(int argc, char const *argv[]) {
     }
     return 0;
 }
+
