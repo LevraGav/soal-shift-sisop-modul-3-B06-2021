@@ -20,6 +20,7 @@ No1:
 - Banyak sub bab
 - Tidak tahu kapan pake theading
 - ETS
+
 No3:
 - Kurangnya waktu karena sedang minggu ETS
 - Masih bingung dengan implementasi threading
