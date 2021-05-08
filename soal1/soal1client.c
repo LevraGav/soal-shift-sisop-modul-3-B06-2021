@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
@@ -54,9 +55,32 @@ void resR() {
     memset(recieve,0,sizeof(recieve));
 }
 
+void send_file(FILE *fp){
+  int n;
+  char data[1024] = {0};
+
+  while(fgets(data, 1024, fp) != NULL) {
+    if (send(strdup, data, sizeof(data), 0) == -1) {
+      perror("[-]Error in sending file.");
+      exit(1);
+    }
+    bzero(data, 1024);
+  }
+}
+
 void sends(int socket,char data[]) {
     send(socket,data,strlen(data),0);
     memset(sent,0,sizeof(sent));
+}
+
+void* addFiles(void* arg) {
+    for (int i=0;i<3;i++) {
+        resR();
+        char temp[1024];
+        scanf("%[^\n]s",temp);
+    }
+    FILE* file = fopen(temp, "r");
+    send_file(file);
 }
 
 int main(int argc, char const *argv[]) {
@@ -94,22 +118,20 @@ int main(int argc, char const *argv[]) {
         strcpy(sent,command);
         send(soc,sent,strlen(sent),0);
         memset(sent,0,sizeof(sent));
-        if (!loggedIn) {
-            if (strcmp(command,"register")==0){
+       if (strcmp(command,"register")==0){
                 Reg();
                 continue;
             }
             else if (strcmp(command,"login")==0){
                 Log();
             }
+            else if (strcmp(command,"add")==0 && loggedIn) {
+                
+            }
             else {
                 printf("Command salah,perhatikan penulisan anda\n");
                 continue;
             }
-        }
-        if (loggedIn){
-            printf("logged in\n");
-        }
     }
     return 0;
 }
