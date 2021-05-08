@@ -11,17 +11,20 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <dirent.h>
 #define PORT 8080
 
 char sent[1024];
 char recieve[1024];
 char buff[1024];
 char user[30];
+char upass[100];
 char command[100];
 bool connected = false;
 int master_socket , new_socket , client_socket[30]= {0},max_clients = 30 , activity,max_sd, i , valread , sd; // GFG
 fd_set readfds;
 bool loggedIn = false;
+
 
 void addUser(char str[]) {
     printf("ADDUSER\n");
@@ -38,6 +41,7 @@ void resR() {
 }
 
 void bRead() { // check Disconnects + Read vals
+    resR();
     int check;
     if ((check = read(sd,recieve,1024)) == 0){
         connected=false;
@@ -50,8 +54,23 @@ void bRead() { // check Disconnects + Read vals
         client_socket[29]=0;
     }
 }
+char* getFileName(char file[]) {
+    char *ptr;
+    char tok[2]="/";
+    ptr = strrchr( file, tok );
+    ptr++;
+    return ptr;
+}
+char* getFileExt(char file[]) {
+    char *ptr;
+    char tok[2]=".";
+    ptr = strrchr( file, tok );
+    ptr++;
+    return ptr;
+}
 
 void bReadCommand() { // check Disconnects + Read vals
+    resR();
     int check;
     if ((check = read(sd,command,100)) == 0){
         connected=false;
@@ -75,11 +94,12 @@ bool LogUser(char str[]) {
     char find[100];
     FILE* file = fopen("akun.txt","r");
     while (fgets(find,100,file)) {
-        printf("%s %s\n",find,idpass);
+        printf("%s%s\n",find,idpass);
         if (strcmp(find,idpass)==0) {
             fclose(file);
             id = strtok(idpass,tok);
             strcpy(user,id);
+            strcpy(upass,idpass);
             loggedIn = true;
             return true;
         }
@@ -92,12 +112,50 @@ void sends(char data[]) {
     memset(sent,0,sizeof(sent));
 }
 
+void writefile(char dir[]) {
+    FILE* file = fopen(dir,"w");
+    int n;
+    char buffer[1024];
+    while (1) {
+        n = recv(sd, buffer, 1024, 0);
+        if (n <= 0){
+            break;
+            fclose(file);
+            return;
+        }
+        fprintf(file, "%s", buffer);
+        bzero(buffer, SIZE);
+    }
+    fclose(file);
+    return;
+}
 
-void addFiles(int socket) { 
+void* addFiles(void* arg) { 
     char publisher[1024] = {0};
 	char tahun[1024] = {0};
 	char path[1024] = {0};
-    sends("Publisher:\nTahun Publikasi:\n Filepath:\n");
+    sends("Publisher:\n");
+    bRead();
+    strcpy(publisher,recieve);
+    sends("Tahun Publish:\n");
+    bRead();
+    strcpy(tahun,recieve);
+    sends("Filepath:\n");
+    bRead();
+    strcpy(path,recieve);
+    char fname[100] = getFileName(path);
+    char ext[10] = getFileExt(path);
+    char dir[300] = "/home/bayu/Documents/Prak3/files/";
+    strcat(dir,fname);
+    FILE* tsv = fopen("files.tsv","a")
+    char info[1024];
+    spritnf(info,"Nama: %s\nPublisher: %s\n Tahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n",fname,publisher,tahun,ext,path);
+    fputs(info,tsv);
+    fclose(tsv);
+    writefile(dir);
+    sends("File berhasil ditambahkan\n");
+    FILE* log = fopen("running.log","a");
+    fputs("Tambah: %s %s",fname,upass);
 }
  
 int main(int argc, char const *argv[]) {  
@@ -105,6 +163,12 @@ int main(int argc, char const *argv[]) {
     int opt = 1;
     int addrlen = sizeof(address);
     
+    DIR* dir = opendir("files");
+    if (dir) {
+        closedir(dir);
+    } else if (ENOENT == errno) {
+        mkdir("files", 0777);
+    }
       
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
@@ -189,6 +253,7 @@ int main(int argc, char const *argv[]) {
         send(new_socket,sent,strlen(sent),0);
         memset(sent,0,sizeof(sent));
         while(connected) {
+            pthread_t thread ;
             memset(command,0,sizeof(command));
             bReadCommand();
             printf("Command: %s\n",command);
@@ -221,7 +286,7 @@ int main(int argc, char const *argv[]) {
                 }
                 if(loggedIn==true) {
                     if (strcmp(command,"add")) {
-                        addFiles(new_socket);
+                        pthread_create(&(thread),NULL,&addFiles,NULL) ;
                     }
                 }
             }   
