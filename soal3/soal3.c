@@ -10,11 +10,9 @@
 
 int main(int argc, char *argv[])
 {
-    if(strcmp(argv[1], "-f") == 0)
-    {
-        printf("parameter -d dipilih\n");
-    }else if(strcmp(argv[1], "-d") == 0)
-    {
+    if(strcmp(argv[1], "-f") == 0){
+        printf("parameter -f dipilih\n");
+    }else if(strcmp(argv[1], "-d") == 0){
         printf("parameter -d dipilih\n");
     }
     // else if(strcmp(argv[1], "\*") == 0)
