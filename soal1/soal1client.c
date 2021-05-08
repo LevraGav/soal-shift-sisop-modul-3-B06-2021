@@ -87,6 +87,31 @@ void addFiles() {
     resR();
 }
 
+void download() {
+    resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")] =0;
+    sends(temp);
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    if (strlen(recieve)<=15) {
+        char dir[300] = "/home/bayu/Documents/Prak3/";
+        strcat(dir,temp);
+        FILE *file = fopen(dir,"w");
+        char buffer[1024]={0};
+        while (1) {
+            memset(buffer,0,sizeof(buffer));
+            int len = read(sd,buffer,1024);
+            fprintf(file,"%s",buffer);
+            break;
+        }
+        printf("break\n");
+        fclose(file);
+        resR();
+    }
+}
+
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     struct sockaddr_in serv_addr;
@@ -133,6 +158,9 @@ int main(int argc, char const *argv[]) {
             else if (strcmp(command,"add")==0 && loggedIn) {
                 addFiles();
             }
+            else if (strcmp(command,"donwload")==0 && loggedIn) {
+                download();
+            }
             else {
                 printf("Command salah,perhatikan penulisan anda\n");
                 continue;
@@ -140,4 +168,3 @@ int main(int argc, char const *argv[]) {
     }
     return 0;
 }
-
