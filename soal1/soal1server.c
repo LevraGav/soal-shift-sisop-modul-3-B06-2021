@@ -11,6 +11,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <fcntl.h>
 #include <dirent.h>
 #define PORT 8080
 
@@ -56,14 +57,14 @@ void bRead() { // check Disconnects + Read vals
 }
 char* getFileName(char file[]) {
     char *ptr;
-    char tok[2]="/";
+    char tok ='/';
     ptr = strrchr( file, tok );
     ptr++;
     return ptr;
 }
 char* getFileExt(char file[]) {
     char *ptr;
-    char tok[2]=".";
+    char tok = '.';
     ptr = strrchr( file, tok );
     ptr++;
     return ptr;
@@ -113,24 +114,19 @@ void sends(char data[]) {
 }
 
 void writefile(char dir[]) {
-    FILE* file = fopen(dir,"w");
-    int n;
-    char buffer[1024];
+    FILE *file = fopen(dir,"w");
+    char buffer[1024]={0};
     while (1) {
-        n = recv(sd, buffer, 1024, 0);
-        if (n <= 0){
-            break;
-            fclose(file);
-            return;
-        }
-        fprintf(file, "%s", buffer);
-        bzero(buffer, SIZE);
+        memset(buffer,0,sizeof(buffer));
+        int len = read(sd,buffer,1024);
+        fprintf(file,"%s",buffer);
+        break;
     }
+    printf("break\n");
     fclose(file);
-    return;
 }
 
-void* addFiles(void* arg) { 
+void addFiles() { 
     char publisher[1024] = {0};
 	char tahun[1024] = {0};
 	char path[1024] = {0};
@@ -143,19 +139,30 @@ void* addFiles(void* arg) {
     sends("Filepath:\n");
     bRead();
     strcpy(path,recieve);
-    char fname[100] = getFileName(path);
-    char ext[10] = getFileExt(path);
+    char *ptr1;
+    char slash ='/';
+    ptr1 = strrchr( path, slash );
+    ptr1++;
+    char fname[100];
+    strcpy(fname,ptr1);
+    char ext[10];
+    char *ptr2;
+    char dot ='.';
+    ptr2 = strrchr( path, dot );
+    ptr2++;
+    strcpy(ext,ptr2);
     char dir[300] = "/home/bayu/Documents/Prak3/files/";
     strcat(dir,fname);
-    FILE* tsv = fopen("files.tsv","a")
-    char info[1024];
-    spritnf(info,"Nama: %s\nPublisher: %s\n Tahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n",fname,publisher,tahun,ext,path);
+    FILE* tsv = fopen("files.tsv","a");
+    char info[5000];
+    sprintf(info,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",fname,publisher,tahun,ext,path);
     fputs(info,tsv);
     fclose(tsv);
-    writefile(dir);
+    writefile(dir); 
     sends("File berhasil ditambahkan\n");
     FILE* log = fopen("running.log","a");
-    fputs("Tambah: %s %s",fname,upass);
+    fprintf(log,"Tambah: %s %s",fname,upass);
+    fclose(log);
 }
  
 int main(int argc, char const *argv[]) {  
@@ -285,11 +292,13 @@ int main(int argc, char const *argv[]) {
                     }
                 }
                 if(loggedIn==true) {
-                    if (strcmp(command,"add")) {
-                        pthread_create(&(thread),NULL,&addFiles,NULL) ;
+                    if (strcmp(command,"add")==0) {
+                        printf("Add\n");
+                       addFiles(); 
                     }
                 }
             }   
         }
     return 0;
 }
+
