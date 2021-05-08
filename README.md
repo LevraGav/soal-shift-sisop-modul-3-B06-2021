@@ -15,3 +15,6 @@ Bayu Adjie Sidharta | 05111940000172
 - [Jawaban Soal 3]()
 
 ## Kendala
+No3:
+- Kurangnya waktu karena sedang minggu ETS
+- Masih bingung dengan implementasi threading
