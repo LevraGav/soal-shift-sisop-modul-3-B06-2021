@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <errno.h>
+#include <pthread.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/time.h>
 #define PORT 8080
 
 char sent[1024];
@@ -15,7 +19,7 @@ char buff[1024];
 char user[30];
 char command[100];
 bool connected = false;
-int master_socket , new_socket , client_socket[30]= {0},max_clients = 30 , activity, i , valread , sd; // GFG
+int master_socket , new_socket , client_socket[30]= {0},max_clients = 30 , activity,max_sd, i , valread , sd; // GFG
 fd_set readfds;
 bool loggedIn = false;
 
@@ -35,31 +39,29 @@ void resR() {
 
 void bRead() { // check Disconnects + Read vals
     int check;
-    if (check = read(new_socket,recieve,1024) == 0){
+    if ((check = read(sd,recieve,1024)) == 0){
         connected=false;
         loggedIn=false;
         close(sd);
-        int temp=client_socket[0];
         for(i=0;i<30;i++)
         {
             client_socket[i]=client_socket[i+1];
         }
-        client_socket[n-1]=temp;
+        client_socket[29]=0;
     }
 }
 
 void bReadCommand() { // check Disconnects + Read vals
     int check;
-    if (check = read(new_socket,command,100) == 0){
+    if ((check = read(sd,command,100)) == 0){
         connected=false;
         loggedIn=false;
-        close(sd);
-        int temp=client_socket[0];
+        close(sd);;
         for(i=0;i<30;i++)
         {
             client_socket[i]=client_socket[i+1];
         }
-        client_socket[n-1]=temp;
+        client_socket[29]=0;
     }
 }
 
@@ -86,7 +88,7 @@ bool LogUser(char str[]) {
 }
 
 void sends(char data[]) {
-    send(socket,data,strlen(data),0);
+    send(sd,data,strlen(data),0);
     memset(sent,0,sizeof(sent));
 }
 
@@ -95,21 +97,21 @@ void addFiles(int socket) {
     char publisher[1024] = {0};
 	char tahun[1024] = {0};
 	char path[1024] = {0};
-    sends(socket,"Publisher:\nTahun Publikasi:\n Filepath:\n");
+    sends("Publisher:\nTahun Publikasi:\n Filepath:\n");
 }
  
 int main(int argc, char const *argv[]) {  
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[1024];
+    
       
     if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
       
-    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt),sizeof(opt)<0)) {
+    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &opt,sizeof(opt)) <0 ) {
         perror("setsockopt");
         exit(EXIT_FAILURE);
     }
@@ -118,12 +120,12 @@ int main(int argc, char const *argv[]) {
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons( PORT );
       
-    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))<0) {
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
 
-    if (listen(server_fd, 3) < 0) {
+    if (listen(master_socket, 3) < 0) {
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -186,10 +188,12 @@ int main(int argc, char const *argv[]) {
         printf("%s\n",sent);
         send(new_socket,sent,strlen(sent),0);
         memset(sent,0,sizeof(sent));
-        while(loggedIn) {
+        while(connected) {
             memset(command,0,sizeof(command));
             bReadCommand();
-            printf("Recieve: %s\n",command);
+            printf("Command: %s\n",command);
+            //int a;
+            //scanf("%d",&a);
             if (loggedIn==false) {
                 if (strcmp(command,"register")==0) {
                     printf("register\n");
@@ -212,7 +216,6 @@ int main(int argc, char const *argv[]) {
                         sends("ID atau password salah\n");
                     }
                         memset(recieve,0,sizeof(recieve));
-                        sends(socket,"1"); 
                         continue;
                     }
                 }
