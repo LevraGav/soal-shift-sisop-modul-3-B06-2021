@@ -155,7 +155,7 @@ void addFiles() {
     strcat(dir,fname);
     FILE* tsv = fopen("files.tsv","a");
     char info[5000];
-    sprintf(info,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",fname,publisher,tahun,ext,path);
+    sprintf(info,"%s\t%s\t%s\t%s\t%s\n",fname,publisher,tahun,ext,path);
     fputs(info,tsv);
     fclose(tsv);
     writefile(dir); 
@@ -165,6 +165,50 @@ void addFiles() {
     fclose(log);
 }
  
+void download () {
+    sends("Download [spasi] namafile.extension\n");
+    bRead();
+    bool flag;
+    char find[200];
+    recieve[strcspn(recieve,"\n")] =0;
+    strcpy(find,recieve);
+    FILE* file = fopen("files.tsv", "r");
+    char lines[1024];
+    while (fgets(lines,1024,file)) {
+        char *token;
+        char found[100];
+        char *linesz = lines;
+        char *rest;
+        token = strtok_r(linesz,"\t",&rest);
+        strcpy(found,token);
+        if (strcmp(find,found)==0){
+            flag = true;
+            break;
+        }
+    }
+    if (flag==true) {
+        sends("File found\n");
+        FILE *sfd = fopen(temp,"rb");  
+        char data[1024] = {0};
+        int n;
+        while(1){
+            memset(data,0,1024);
+            n=fread(sfd,data,1024);
+            //printf("%d",n);
+            send(soc,data,n,0);
+            if(n==0) {
+                break;
+            }
+            break;
+        }
+        printf("break"); 
+        fclose(sfd);
+        sends("File sent\n");
+    }
+    else {
+        sends("File not found,did you misstype?\n");
+    }
+}
 int main(int argc, char const *argv[]) {  
     struct sockaddr_in address;
     int opt = 1;
@@ -294,11 +338,14 @@ int main(int argc, char const *argv[]) {
                 if(loggedIn==true) {
                     if (strcmp(command,"add")==0) {
                         printf("Add\n");
-                       addFiles(); 
+                        addFiles(); 
+                    }
+                    else if (strcmp(command,"download")==0) {
+                        printf("download\n");
+                        download(); 
                     }
                 }
             }   
         }
     return 0;
 }
-
