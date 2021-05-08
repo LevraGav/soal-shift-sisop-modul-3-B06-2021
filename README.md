@@ -15,6 +15,11 @@ Bayu Adjie Sidharta | 05111940000172
 - [Jawaban Soal 3]()
 
 ## Kendala
+No1:
+- Susah download dan upload
+- Banyak sub bab
+- Tidak tahu kapan pake theading
+- ETS
 No3:
 - Kurangnya waktu karena sedang minggu ETS
 - Masih bingung dengan implementasi threading
