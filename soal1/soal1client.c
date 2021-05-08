@@ -12,8 +12,9 @@ char sent[1024];
 char recieve[1024];
 char buff[1024];
 bool loggedIn=false;
+int soc;
 
-void RegLog() {
+void Reg() {
     read(soc,recieve,1024);
     printf("%s\n",recieve);
     memset(recieve,0,sizeof(recieve));
@@ -28,7 +29,28 @@ void RegLog() {
     memset(recieve,0,sizeof(recieve));
 }
 
+
+void Log() {
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    memset(recieve,0,sizeof(recieve));
+    char uname[100];
+    char pass[100];
+    scanf("%s %s",uname,pass);
+    sprintf(sent,"%s:%s\n",uname,pass);
+    send(soc,sent,strlen(sent),0);
+    memset(sent,0,sizeof(sent));
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    if(recieve[0]=='L'){
+        loggedIn=true;
+    }
+    memset(recieve,0,sizeof(recieve));
+}
+
 void resR() {
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
     memset(recieve,0,sizeof(recieve));
 }
 
@@ -39,7 +61,6 @@ void sends(int socket,char data[]) {
 
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
-    int soc=0;
     struct sockaddr_in serv_addr;
     if ((soc = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         printf("\n Socket creation error \n");
@@ -75,18 +96,19 @@ int main(int argc, char const *argv[]) {
         memset(sent,0,sizeof(sent));
         if (!loggedIn) {
             if (strcmp(command,"register")==0){
-            RegLog();
+                Reg();
+                continue;
             }
-            if (strcmp(command,"login")==0){
-                RegLog();
-                read(soc,recieve,1024);
-                if (strcmp(recieve,"1"==0) {
-                    loggedIn=true;
-                }
+            else if (strcmp(command,"login")==0){
+                Log();
+            }
+            else {
+                printf("Command salah,perhatikan penulisan anda\n");
+                continue;
             }
         }
         if (loggedIn){
-            
+            printf("logged in\n");
         }
     }
     return 0;
