@@ -1,4 +1,4 @@
-# soal-shift-sisop-modul-2-B06-2021
+# soal-shift-sisop-modul-3-B06-2021
 Laporan Penyelesaian Pengerjaan Soal Praktikum SISOP Modul 3 - Kelompok B06
 
 # Anggota Kelompok
