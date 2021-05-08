@@ -71,15 +71,11 @@ void addFiles() {
     }
     FILE *sfd = fopen(temp,"rb");  
     char data[1024] = {0};
-    int n;
+    
     while(1){
         memset(data,0,1024);
-        n=fread(sfd,data,1024);
-        //printf("%d",n);
-        send(soc,data,n,0);
-        if(n==0) {
-            break;
-        }
+        size_t size = fread(data,sizeof(char),1024,sfd);
+        send(soc,data,1024,0);
         break;
     }
     printf("break"); 
@@ -95,20 +91,19 @@ void download() {
     sends(temp);
     read(soc,recieve,1024);
     printf("%s\n",recieve);
-    if (strlen(recieve)<=15) {
+    if (recieve[0]=='F') {
         char dir[300] = "/home/bayu/Documents/Prak3/";
         strcat(dir,temp);
         FILE *file = fopen(dir,"w");
-        char buffer[1024]={0};
+        char buffer[4096]={0};
         while (1) {
             memset(buffer,0,sizeof(buffer));
-            int len = read(sd,buffer,1024);
+            int len = read(soc,buffer,4096); 
             fprintf(file,"%s",buffer);
             break;
         }
         printf("break\n");
         fclose(file);
-        resR();
     }
 }
 
@@ -158,7 +153,7 @@ int main(int argc, char const *argv[]) {
             else if (strcmp(command,"add")==0 && loggedIn) {
                 addFiles();
             }
-            else if (strcmp(command,"donwload")==0 && loggedIn) {
+            else if (strcmp(command,"download")==0 && loggedIn) {
                 download();
             }
             else {
