@@ -167,7 +167,7 @@ void addFiles() {
 }
  
 void download () {
-    sends("Download [spasi] namafile.extension\n");
+    sends("namafile.extension\n");
     bRead();
     bool flag;
     char find[200];
@@ -206,6 +206,58 @@ void download () {
         sends("Sorry file not found,did you misstype?\n");
     }
 }
+
+void deletess() {
+    sends("namafile.extension\n");
+    bRead();
+    char finds[1024]={0};
+    strcpy(finds,recieve);
+    printf("%s\n",finds);
+//  FILE* fileR = fopen("files.tsv","r");
+    printf("HAH");
+//    FILE* fileW = fopen("temp.tsv","w");
+    printf("1");
+    char data[1024] = {0};
+    printf("2");
+    char publisher[200], tahun[200],filepath[200];
+    printf("a");
+//    while(fgets(data,1024,fileR)!=NULL){
+//        sscanf(data,"%[^\t]\t%s\t%s",publisher,tahun,filepath);
+//        char *ptr1;
+//        char slash ='/';
+//        ptr1 = strrchr( filepath, slash );
+//        ptr1++;
+//        char wow[100];
+//        strcpy(wow,ptr1);
+//        if (strcmp(wow,finds)!=0) {
+//            printf("%s",data);
+//        }
+//        sleep(1);
+//        bzero(data,1024);
+//    }
+//printf("b");
+//    fclose(fileW);
+//    fclose(fileR);
+    
+//    remove("files.tsv");
+//    rename("temp.tsv","files.tsv");
+//    printf("c");
+//    FILE* log = fopen("running.log","a");
+//    fprintf(log,"Hapus: %s %s",finds,upass);
+//    fclose(log);
+//    char oldFile[200]= {0};
+//    char renamed[200]={0};
+//    char temp[104]="/home/bayu/Documents/Prak3/files/";
+//    strcat(temp,oldFile);
+//    strcat(temp,renamed);
+//   strcat(oldFile,finds);
+//    strcat(renamed,"old-");
+//    strcat(renamed,finds);
+//    printf("d");
+//    rename(oldFile,renamed);
+    sends("Delete sukses\n");
+}
+
 int main(int argc, char const *argv[]) {  
     struct sockaddr_in address;
     int opt = 1;
@@ -340,6 +392,11 @@ int main(int argc, char const *argv[]) {
                     else if (strcmp(command,"download")==0) {
                         printf("download\n");
                         download(); 
+                    }
+                    else if (strcmp(command,"delete")==0) {
+                        printf("delete\n");
+                        deletess();
+                        printf("thefuck");
                     }
                 }
             }   
