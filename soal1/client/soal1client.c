@@ -107,6 +107,15 @@ void download() {
     }
 }
 
+void delete() {
+    resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")]=0;
+    sends(temp);
+    resR();
+}
+
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     struct sockaddr_in serv_addr;
@@ -155,6 +164,9 @@ int main(int argc, char const *argv[]) {
             }
             else if (strcmp(command,"download")==0 && loggedIn) {
                 download();
+            }
+            else if (strcmp(command,"delete")==0 && loggedIn) {
+                delete();
             }
             else {
                 printf("Command salah,perhatikan penulisan anda\n");
