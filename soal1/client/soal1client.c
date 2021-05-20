@@ -116,6 +116,23 @@ void delete() {
     resR();
 }
 
+void see(){
+    char bigbuff[10000];
+    read (soc,bigbuff,10000);
+    printf("%s\n",bigbuff);
+    memset(bigbuff,0,sizeof(bigbuff));
+    
+}
+
+void find(){
+    printf("Tulis nama file anda\n");
+    char find[200] = {0};
+    scanf("%s",find);
+    find[strcspn(find,"\n")]=0;
+    sends(find);
+    resR();
+}
+
 int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     struct sockaddr_in serv_addr;
@@ -167,6 +184,12 @@ int main(int argc, char const *argv[]) {
             }
             else if (strcmp(command,"delete")==0 && loggedIn) {
                 delete();
+            }
+            else if (strcmp(command,"see")==0 && loggedIn){
+                see();
+            }
+            else if(strcmp(command,"find")==0 && loggedIn){
+                find();
             }
             else {
                 printf("Command salah,perhatikan penulisan anda\n");
