@@ -253,6 +253,53 @@ void deletess() {
     }
 }
 
+void see() {
+    FILE* fileR = fopen("files.tsv","r");
+    char data[1024] = {0};
+    char tosend[10000]={0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        char tosendbuff [1024];
+        sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,tahun,ext,filepath);
+        strcat(tosend,tosendbuff);
+        bzero(data,1024);
+    }
+    fclose(fileR);
+    sends(tosend);
+}
+
+void find(){
+    bRead();
+    FILE* fileR = fopen("files.tsv","r");
+    char find[200];
+    bool flag = false;
+    char data[1024] = {0};
+    char tosend[10000]={0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    strcpy(find,recieve);
+    while(fgets(data,1024,fileR)!=NULL){
+           sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+           char tosendbuff [1024];
+           sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,     tahun,ext,filepath);
+           char * beep;
+           beep = strstr(filename,find);
+           if(beep!=NULL){
+               flag=true;
+            strcat(tosend,tosendbuff);   
+           }
+           bzero(data,1024);
+       }
+       fclose(fileR);
+       if (!flag){
+           sends("Tidak ditemukan");
+       }
+       else {
+           sends(tosend);
+       }
+
+}
+
 int main(int argc, char const *argv[]) {  
     struct sockaddr_in address;
     int opt = 1;
@@ -391,6 +438,13 @@ int main(int argc, char const *argv[]) {
                     else if (strcmp(command,"delete")==0) {
                         printf("delete\n");
                         deletess();
+                    }
+                    else if (strcmp(command,"see")==0) {
+                        printf("see\n");
+                        see();
+                    }
+                    else if (strcmp(command,"find")==0){
+                        find();
                     }
                 }
             }   
