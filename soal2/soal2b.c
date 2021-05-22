@@ -9,11 +9,19 @@ int banyak_data=24;
 int input_data_2b[24];
 int *Temp;
 
-long long jumlah(int n, int sn) 
+long long jumlah(long long n, int sn) 
 {
     long long hasil = 1;
-    for(int a=0; a < sn; a++){
-        hasil *= (n-a);
+    for(long long a=0; a < sn; a++){
+        if(n - a <= 0)
+        {
+            hasil *= 1;
+        }
+
+        else
+        {
+            hasil *= (n-a);
+        }
     }
     return hasil;
 }
