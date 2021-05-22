@@ -98,9 +98,6 @@ void kategRekur(char *basePath) {
         strcat(path, "/");
         strcat(path, namelist[i]->d_name);
 
-        strcat(srcPathForThread, "/");
-        strcat(srcPathForThread, namelist[i]->d_name);
-
         if (namelist[i]->d_type != DT_DIR) {
           int err;
           err = pthread_create(&(tid[threadCount - 2]), NULL, &pindah, (void *)path);
