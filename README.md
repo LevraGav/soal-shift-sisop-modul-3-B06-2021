@@ -627,7 +627,9 @@ jika ditemukan akan dikirim "File Found". Dengan menggunakan workaround soal 1a 
 Sebelum download
 ![image](https://user-images.githubusercontent.com/31591861/119264856-f6233a80-bc0e-11eb-9f94-5675c6eeb125.png)
 
-Sesudah download
+Sesudah download  
+![image](https://user-images.githubusercontent.com/31591861/119265076-9bd6a980-bc0f-11eb-95f5-a4540543c6a7.png)
+
 ![image](https://user-images.githubusercontent.com/31591861/119264906-15ba6300-bc0f-11eb-87b9-15ad94043c83.png)
 
 ## 1E
@@ -698,9 +700,58 @@ void delete() {
     resR();
 }
 ```
-### Penjelasan
 
+### Penjelasan
+Client mengirim nama file dan extensi lalu dengan cara diatas lalu server akan mengiterasi ke semua data yang ada di tsv. sscanf disini berfungsi untuk memparse tsv menjadi 5 varible berbeda. jika ada name yang **TIDAK** sama dengan yang ingin didelete akan dicopy ke tsv baru yang dinamakan temp. jika ditemukan file tersebut, tidak copy dan membuat flag menjadi true. 
+Metode ini dilakukan karena tidak ada cara mudah untuk mendelete suatu line di tsv dengan mudah. Setelah selesai akan di close kedua file tersebut.
+```bash
+FILE* fileR = fopen("files.tsv","r");
+    FILE* fileW = fopen("temp.tsv","w");
+    char data[1024] = {0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        if (strcmp(filename,finds)!=0) {
+        fprintf(fileW,"%s",data);
+        } 
+        if (strcmp(filename,finds)==0){
+            flag = true;
+        }
+        bzero(data,1024);
+    }
+    fclose(fileW);
+    fclose(fileR);
+```
+Lalu jika file ditemukan kita mendelete files.tsv yang lama dengan function remove dan rename temp menjadi files dengan function rename. Dengan cara sama seperti sebelumnya kita juga akan merename file yang didelete menjadi old-filename
+
+```bash
+if (flag == true) {
+    remove("files.tsv");
+    rename("temp.tsv","files.tsv");
+    FILE* log = fopen("running.log","a");
+    fprintf(log,"Hapus: %s %s",finds,upass);
+    fclose(log);
+    char oldFile[200]= {0};
+    char renamed[200]={0};
+    char temp[104]="/home/bayu/Documents/Prak3/files/";
+    strcat(oldFile,temp);
+    strcat(renamed,temp);
+    strcat(oldFile,finds);
+    strcat(renamed,"old-");
+    strcat(renamed,finds);
+//    printf("d");
+    rename(oldFile,renamed);
+    sends("Delete sukses\n");
+    }
+    else {
+        sends("File tidak ditemukan");
+    }
+}
+```
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119265395-bcebca00-bc10-11eb-9c4c-a4e05de347e5.png)
+![image](https://user-images.githubusercontent.com/31591861/119265399-c5440500-bc10-11eb-833b-8d891a78d5db.png)
+![image](https://user-images.githubusercontent.com/31591861/119265408-cffe9a00-bc10-11eb-8ff8-bd3319a48aa9.png)
 
 ## 1F
 Client dapat melihat semua isi <b>files.tsv</b> dengan memanggil suatu perintah yang bernama see. Output dari perintah tersebut keluar dengan format. 
@@ -726,10 +777,37 @@ Filepath :
 ```
 
 ### Pengerjaan
-
+Client
+```bash
+void see(){
+    char bigbuff[10000];
+    read (soc,bigbuff,10000);
+    printf("%s\n",bigbuff);
+    memset(bigbuff,0,sizeof(bigbuff));
+    
+}
+```
+Server
+```bash
+ FILE* fileR = fopen("files.tsv","r");
+    char data[1024] = {0};
+    char tosend[10000]={0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        char tosendbuff [1024];
+        sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,tahun,ext,filepath);
+        strcat(tosend,tosendbuff);
+        bzero(data,1024);
+    }
+    fclose(fileR);
+    sends(tosend);
+}
+```
 ### Penjelasan
-
+Client hanya menyiapkan sebuah buffer besar untuk print, setelah dikirim command see, server akan membaca setiap line dari files.tsv dengan cara 1e dan mengappend tersebut ke sebuah buffer besar untuk dikirim.
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119265489-2e2b7d00-bc11-11eb-8db6-1035174f5bff.png)
 
 ## 1G
 Aplikasi client juga dapat melakukan pencarian dengan memberikan suatu string. Hasilnya adalah semua nama file yang mengandung string tersebut. Format output seperti format output f.
@@ -740,10 +818,62 @@ find TEMP
 ```
 
 ### Pengerjaan
+Server
+```bash
+void find(){
+    bRead();
+    FILE* fileR = fopen("files.tsv","r");
+    char find[200];
+    bool flag = false;
+    char data[1024] = {0};
+    char tosend[10000]={0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    strcpy(find,recieve);
+    while(fgets(data,1024,fileR)!=NULL){
+           sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+           char tosendbuff [1024];
+           sprintf(tosendbuff,"Nama: %s\nPublisher: %s\nTahun Publishing: %s\nExtensi File: %s\nFilepath: %s\n\n",filename,publisher,     tahun,ext,filepath);
+           char * beep;
+           beep = strstr(filename,find);
+           if(beep!=NULL){
+               flag=true;
+            strcat(tosend,tosendbuff);   
+           }
+           bzero(data,1024);
+       }
+       fclose(fileR);
+       if (!flag){
+           sends("Tidak ditemukan");
+       }
+       else {
+           sends(tosend);
+       }
 
+}
+```
+Client
+```bash
+void find(){
+   printf("Tulis nama file anda\n");
+    char find[200] = {0};
+    scanf("%s",find);
+    find[strcspn(find,"\n")]=0;
+    sends(find);
+    resR();
+}
+```
 ### Penjelasan
-
+Client mengirim sebuah string yang ingin dicari. seperti metode see diatas server akan mengloop untuk semua line di tsv dan dengan menggunakan function strstr dapat mencari sebuah substring di dalam string. Jika pointer tersebut tidak null akan di tambahkan ke buffer seperti command see lalu akan dikirimkan ke client
+```bash
+char * beep;
+           beep = strstr(filename,find);
+           if(beep!=NULL){
+               flag=true;
+            strcat(tosend,tosendbuff);   
+           }
+```
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119265681-c0cc1c00-bc11-11eb-93ef-0163eabfb1da.png)
 
 ## 1H
 Dikarenakan Keverk waspada dengan pertambahan dan penghapusan file di server, maka Keverk membuat suatu log untuk server yang bernama <b>running.log</b>. Contoh isi dari log ini adalah
@@ -755,10 +885,83 @@ Hapus : File2.ektensi (id:pass)
 ```
 
 ### Pengerjaan
-
+delete
+```bash
+void deletess() {
+    sends("namafile.extension\n");
+    bRead();
+    bool flag = false;
+    char finds[1024]={0};
+    strcpy(finds,recieve);
+    printf("%s\n",finds);
+    FILE* fileR = fopen("files.tsv","r");
+    FILE* fileW = fopen("temp.tsv","w");
+    char data[1024] = {0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        if (strcmp(filename,finds)!=0) {
+        fprintf(fileW,"%s",data);
+        } 
+        if (strcmp(filename,finds)==0){
+            flag = true;
+        }
+        bzero(data,1024);
+    }
+    fclose(fileW);
+    fclose(fileR);
+    if (flag == true) {
+    remove("files.tsv");
+    rename("temp.tsv","files.tsv");
+    FILE* log = fopen("running.log","a");
+    fprintf(log,"Hapus: %s %s",finds,upass);
+    fclose(log);
+```
+add
+```bash
+void addFiles() { 
+    char publisher[1024] = {0};
+	char tahun[1024] = {0};
+	char path[1024] = {0};
+    sends("Publisher:\n");
+    bRead();
+    strcpy(publisher,recieve);
+    sends("Tahun Publish:\n");
+    bRead();
+    strcpy(tahun,recieve);
+    sends("Filepath:\n");
+    bRead();
+    strcpy(path,recieve);
+    char *ptr1;
+    char slash ='/';
+    ptr1 = strrchr( path, slash );
+    ptr1++;
+    char fname[100];
+    strcpy(fname,ptr1);
+    char ext[10];
+    char *ptr2;
+    char dot ='.';
+    ptr2 = strrchr( path, dot );
+    ptr2++;
+    strcpy(ext,ptr2);
+    char dir[300] = "/home/bayu/Documents/Prak3/files/";
+    strcat(dir,fname);
+    FILE* tsv = fopen("files.tsv","a");
+    char info[5000];
+    sprintf(info,"%s\t%s\t%s\t%s\t%s\n",fname,publisher,tahun,ext,path);
+    fputs(info,tsv);
+    fclose(tsv);
+    writefile(dir); 
+    sends("File berhasil ditambahkan\n");
+    FILE* log = fopen("running.log","a");
+    fprintf(log,"Tambah: %s %s",fname,upass);
+    fclose(log);
+}
+```
 ### Penjelasan
-
+Setiap ada function delete dan add di append ke running.log
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119265755-fd981300-bc11-11eb-932b-2cc5b46d4e90.png)
 
 ## Kendala
 - Susah download dan upload
