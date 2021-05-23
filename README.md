@@ -210,9 +210,70 @@ void Reg() {
     memset(recieve,0,sizeof(recieve));
 }
 ```
+Client Login
+```bash
+void Log() {
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    memset(recieve,0,sizeof(recieve));
+    char uname[100];
+    char pass[100];
+    scanf("%s %s",uname,pass);
+    sprintf(sent,"%s:%s\n",uname,pass);
+    send(soc,sent,strlen(sent),0);
+    memset(sent,0,sizeof(sent));
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    if(recieve[0]=='L'){
+        loggedIn=true;
+    }
+    memset(recieve,0,sizeof(recieve));
+}
+```
+Server Login
+```bash
+bool LogUser(char str[]) {
+    printf("LogUser\n");
+    char idpass [100];
+    strcpy(idpass,str);
+    printf("%s\n",idpass);
+    char *id;
+    char tok[2]=":";
+    char find[100];
+    FILE* file = fopen("akun.txt","r");
+    while (fgets(find,100,file)) {
+        printf("%s%s\n",find,idpass);
+        if (strcmp(find,idpass)==0) {
+            strcpy(upass,idpass);
+            fclose(file);
+            id = strtok(idpass,tok);
+            strcpy(user,id);
+            loggedIn = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+ if (strcmp(command,"login")==0) {
+                    printf("login\n");
+                    sends("Login\nInput ID dan password dipisah oleh spasi\nEx: Bayu 123");
+                    bRead();
+                    if (LogUser(recieve)) {
+                        sprintf(sent,"Login sukses,selamat datang %s\n",user);
+                        sends(sent);
+                    }
+                    else {
+                        sends("ID atau password salah\n");
+                    }
+                        memset(recieve,0,sizeof(recieve));
+                        continue;
+                    }
+                }
+```
 ### Penjelasan
 Soal no 1 mempunyai 2 bagian yaitu, multiple connections dan register melalui client dan di record di akun.txt  
-Untuk bagian 1 saya memodifikasi code dari geeks for geeks ![Socket Programming in C/C++: Handling multiple clients on server without multi threading](https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/) dalam prograrm saya.
+Untuk bagian 1 saya memodifikasi code dari geeks for geeks [Socket Programming in C/C++: Handling multiple clients on server without multi threading](https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading) dalam prograrm saya.
 Cara kerjanya adalah membuat queue of connections yang setiap kali ada client yang disconnect akan menconnect ke client selanjutnya. Setiap kali sebuah client connect ke server, ia akan dimasukan ke array tersebut.
 
 Untuk bagian 2 register, pertama client membaca input dari user yang berisi username dan password.
@@ -236,10 +297,40 @@ lalu input akan diparse sesuai format yaitu "username:password" lalu akan dikiri
 ```
 setelah itu akan di read melalui fungsi "bRead". fungsi ini adalah fungsi helper dimana jika server menemukan "0" atau connection terminated ia akan drop connection dan menggeser array dan connect ke client baru.  
 Lalu server membaca username dan password yang telah di parse lalu meng-append file tesebut ke line terakhir lalu close file.
+
 ![image](https://user-images.githubusercontent.com/31591861/119263168-261b0f80-bc08-11eb-95be-56bf16702098.png)
+
+Untuk login pertama seperti dijelaskan di register, client akan mengirimkan username dan password yang sudah di parse ke server
+Lalu untuk setiap entry akan dicheck username dan password yang telah di parse dengan akun.txt menggunakan
+```bash
+ while (fgets(find,100,file)) {
+        printf("%s%s\n",find,idpass);
+        if (strcmp(find,idpass)==0) {
+            strcpy(upass,idpass);
+            fclose(file);
+            id = strtok(idpass,tok);
+            strcpy(user,id);
+            loggedIn = true;
+            return true;
+        }
+    }
+    return false;
+}
+```
+Jika ada yang cocok, id dan password akan di save untuk running.log dan return true, jika tidak return false.  
+Karena client juga perlu tau jika login sukses atau failed maka pengecekan dilakukan dengan
+```bash
+if(recieve[0]=='L'){
+        loggedIn=true;
+    }
+memset(recieve,0,sizeof(recieve));
+```
+karena kita tau message yang akan dikirim jika sukses atau failed kita dapat menggunakan workaround ini untuk membuat user kita logged in di client
+![image](https://user-images.githubusercontent.com/31591861/119264386-28cc3380-bc0d-11eb-9e02-53c019f0059e.png)
 ### Output
 Setelah dijalankan file akun.txt akan menjadi seperti ini
 ![image](https://user-images.githubusercontent.com/31591861/119263180-3206d180-bc08-11eb-84e4-1ea3bc69f4f9.png)
+
 ## 1B
 Sistem memiliki sebuah database yang bernama <b>files.tsv</b>. Isi dari <b>files.tsv</b> ini adalah <b>path file saat berada di server</b>, <b>publisher</b>, dan <b>tahun publikasi</b>. Setiap penambahan dan penghapusan file pada folder file yang bernama <b>FILES</b> pada server akan memengaruhi isi dari <b>files.tsv</b>. Folder <b>FILES</b> otomatis dibuat saat server dijalankan.
 
@@ -356,8 +447,59 @@ void addFiles() {
 }
 ```
 ### Penjelasan
+Pertama User akan menginputkan Publisher, Tahun Publikasi dan Filepath dari file yang ingin dikirim. Hal ini dapat dilihat dari porsi dibawah untuk client dan server
+SERVER
+```bash
+void addFiles() { 
+    char publisher[1024] = {0};
+	char tahun[1024] = {0};
+	char path[1024] = {0};
+    sends("Publisher:\n");
+    bRead();
+    strcpy(publisher,recieve);
+    sends("Tahun Publish:\n");
+    bRead();
+    strcpy(tahun,recieve);
+    sends("Filepath:\n");
+    bRead();
+    strcpy(path,recieve);
+```
+CLIENT
+```bash
+void addFiles() { 
+    char temp[1024];
+    for (int i=0;i<3;i++) {
+        resR();
+        scanf("%s",temp);
+        temp[strcspn(temp,"\n")] =0;
+        sends(temp);
+    }
+```
+Lalu kita dapat mendapatkan filename dan extensionya dengan memanipulasi filepath yang dikirimkan dengan menggunakan strrchr.  
+strrchr adalah sebuah function yang mereturn pointer ke sebuah kata atau huruf terakhir di array.
+```bash
+    char *ptr1;
+    char slash ='/';
+    ptr1 = strrchr( path, slash );
+    ptr1++;
+    char fname[100];
+    strcpy(fname,ptr1);
+    char ext[10];
+    char *ptr2;
+    char dot ='.';
+    ptr2 = strrchr( path, dot );
+    ptr2++;
+    strcpy(ext,ptr2);
+```
+Hal ini dapat dimanfaatkan untuk mendapatkan filename dan extension dari file. Kita perlu ingat untuk menambah 1 dari pointernya karena kita tidak ingin mengambil "/"
+atau pun "." karena jika kita menggunakan strrchr untuk kata "/home/bayu.txt" dengan karakter "/" function tersebut akan mereturn "/bayu"
 
+lalu kita read dari data yang ingin dikirim dan disend ke server menggunakan fread dan while loop. Setelah itu kita send file sukses.
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119264478-98422300-bc0d-11eb-9c03-d487f355b6f4.png)
+![image](https://user-images.githubusercontent.com/31591861/119264494-a6903f00-bc0d-11eb-9cd4-f02b0dad58b0.png)
+![image](https://user-images.githubusercontent.com/31591861/119264507-b3149780-bc0d-11eb-86b5-68c703aef50e.png)
+![image](https://user-images.githubusercontent.com/31591861/119264509-b871e200-bc0d-11eb-9ed5-1f2e54079148.png)
 
 ## 1D
 Dan client dapat mendownload file yang telah ada dalam folder FILES di server, sehingga sistem harus dapat mengirim file ke client. Server harus melihat dari files.tsv untuk melakukan pengecekan apakah file tersebut valid. Jika tidak valid, maka mengirimkan pesan error balik ke client. Jika berhasil, file akan dikirim dan akan diterima ke client di <b>folder client</b> tersebut. 
@@ -368,10 +510,125 @@ download TEMPfile.pdf
 ```
 
 ### Pengerjaan
-
+SERVER
+```bash
+void download () {
+    sends("namafile.extension\n");
+    bRead();
+    bool flag;
+    char find[200];
+    recieve[strcspn(recieve,"\n")] =0;
+    strcpy(find,recieve);
+    FILE* file = fopen("files.tsv", "r");
+    char lines[1024];
+    while (fgets(lines,1024,file)) {
+        char *token;
+        char found[100];
+        char *linesz = lines;
+        char *rest;
+        token = strtok_r(linesz,"\t",&rest);
+        strcpy(found,token);
+        if (strcmp(find,found)==0){
+            flag = true;
+            break;
+        }
+    }
+    if (flag==true) {
+        sends("File found\n");
+        char temp[104]="/home/bayu/Documents/Prak3/files/";
+        strcat(temp,find);
+        FILE *sfd = fopen(temp,"rb");  
+        char data[4096] = {0};
+        while(1){
+            memset(data,0,4096);
+            size_t size = fread(data,sizeof(char),4096,sfd);
+            send(sd,data,strlen(data),0);
+            break;
+        }
+        printf("break"); 
+        fclose(sfd); 
+    }
+    else {
+        sends("Sorry file not found,did you misstype?\n");
+    }
+}
+```
+CLIENT
+```bash
+ resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")] =0;
+    sends(temp);
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    if (recieve[0]=='F') {
+        char dir[300] = "/home/bayu/Documents/Prak3/";
+        strcat(dir,temp);
+        FILE *file = fopen(dir,"w");
+        char buffer[4096]={0};
+        while (1) {
+            memset(buffer,0,sizeof(buffer));
+            int len = read(soc,buffer,4096); 
+            fprintf(file,"%s",buffer);
+            break;
+        }
+        printf("break\n");
+        fclose(file);
+    }
+```
 ### Penjelasan
+Pengerjaan soal ini seperti soal 3 tapi dibalik saja dari server ke client. 
+```bash
+ sends("namafile.extension\n");
+    bRead();
+    bool flag;
+    char find[200];
+    recieve[strcspn(recieve,"\n")] =0;
+    strcpy(find,recieve);
+    FILE* file = fopen("files.tsv", "r");
+    char lines[1024];
+    while (fgets(lines,1024,file)) {
+        char *token;
+        char found[100];
+        char *linesz = lines;
+        char *rest;
+        token = strtok_r(linesz,"\t",&rest);
+        strcpy(found,token);
+        if (strcmp(find,found)==0){
+            flag = true;
+            break;
+        }
+    }
+```
+Seperti pencarian nama, kita mencari dalam file yang sudah diparse menggunakan Strtok untuk mencari string sebelum tab pertama yaitu nama file dengan apa yang ingin didownloaa.
+jika ditemukan akan dikirim "File Found". Dengan menggunakan workaround soal 1a kita dapat mendetermine apakah file ada atau tidak. Jika ada, dengan menggunakan cara 1c kita mengirim dari server ke client.
+```bash
+ if (flag==true) {
+        sends("File found\n");
+        char temp[104]="/home/bayu/Documents/Prak3/files/";
+        strcat(temp,find);
+        FILE *sfd = fopen(temp,"rb");  
+        char data[4096] = {0};
+        while(1){
+            memset(data,0,4096);
+            size_t size = fread(data,sizeof(char),4096,sfd);
+            send(sd,data,strlen(data),0);
+            break;
+        }
+        printf("break"); 
+        fclose(sfd); 
+    }
+```
 
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119264880-01766600-bc0f-11eb-812f-2840b82e989d.png)
+
+Sebelum download
+![image](https://user-images.githubusercontent.com/31591861/119264856-f6233a80-bc0e-11eb-9f94-5675c6eeb125.png)
+
+Sesudah download
+![image](https://user-images.githubusercontent.com/31591861/119264906-15ba6300-bc0f-11eb-87b9-15ad94043c83.png)
 
 ## 1E
 Setelah itu, client juga dapat menghapus file yang tersimpan di server. Akan tetapi, Keverk takut file yang dibuang adalah file yang penting, maka file hanya akan diganti namanya menjadi ‘old-NamaFile.ekstensi’. Ketika file telah diubah namanya, maka row dari file tersebut di file.tsv akan terhapus.
@@ -382,7 +639,65 @@ delete TEMPfile.pdf
 ```
 
 ### Pengerjaan
-
+Server
+```bash
+void deletess() {
+    sends("namafile.extension\n");
+    bRead();
+    bool flag = false;
+    char finds[1024]={0};
+    strcpy(finds,recieve);
+    printf("%s\n",finds);
+    FILE* fileR = fopen("files.tsv","r");
+    FILE* fileW = fopen("temp.tsv","w");
+    char data[1024] = {0};
+    char publisher[200], tahun[200],filepath[200],ext[20],filename[200];
+    while(fgets(data,1024,fileR)!=NULL){
+        sscanf(data,"%[^\t]\t%s\t%s\t%s\t%s",filename,publisher,tahun,ext,filepath);
+        if (strcmp(filename,finds)!=0) {
+        fprintf(fileW,"%s",data);
+        } 
+        if (strcmp(filename,finds)==0){
+            flag = true;
+        }
+        bzero(data,1024);
+    }
+    fclose(fileW);
+    fclose(fileR);
+    if (flag == true) {
+    remove("files.tsv");
+    rename("temp.tsv","files.tsv");
+    FILE* log = fopen("running.log","a");
+    fprintf(log,"Hapus: %s %s",finds,upass);
+    fclose(log);
+    char oldFile[200]= {0};
+    char renamed[200]={0};
+    char temp[104]="/home/bayu/Documents/Prak3/files/";
+    strcat(oldFile,temp);
+    strcat(renamed,temp);
+    strcat(oldFile,finds);
+    strcat(renamed,"old-");
+    strcat(renamed,finds);
+//    printf("d");
+    rename(oldFile,renamed);
+    sends("Delete sukses\n");
+    }
+    else {
+        sends("File tidak ditemukan");
+    }
+}
+```
+Client
+```bash
+void delete() {
+    resR();
+    char temp[1024];
+    scanf("%s",temp);
+    temp[strcspn(temp,"\n")]=0;
+    sends(temp);
+    resR();
+}
+```
 ### Penjelasan
 
 ### Output
