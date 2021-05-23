@@ -199,6 +199,91 @@ Detil dari tugas tersebut adalah :
 Membuat program perkalian matrix (4x3 dengan 3x6) dan menampilkan hasilnya. Matriks nantinya akan berisi angka 1-20 (tidak perlu dibuat filter angka).
 
 ### Pengerjaan
+```bash
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+
+int main() {
+    int matriks1[21][21], matriks2[21][21], hasil[21][21];
+    int i, j, k, m, n, p, q, jumlah = 0;
+
+    key_t key = 1234;
+    int *Temp;
+    int shmid = shmget(key, sizeof(int)*24, IPC_CREAT | 0666);
+    Temp = shmat(shmid, NULL, 0);
+
+    if(shmid  == -1){
+        printf("error\n");
+        return 0;
+    }
+
+    printf("Masukkan jumlah baris matriks pertama: ");
+    scanf("%d",&m);
+
+    printf("Masukkan jumlah kolom matriks pertama: ");
+    scanf("%d",&n);
+
+    printf("Masukkan jumlah baris matriks kedua: ");
+    scanf("%d",&p);
+
+    printf("Masukkan jumlah kolom matriks kedua: ");
+    scanf("%d",&q);
+
+    if(n != p)
+    {
+        printf("Matriks tidak dapat dikalikan satu sama lain.\n");
+    } 
+    
+    else {
+        printf("Masukkan elemen matriks pertama: \n");
+        for(i = 0; i < m; i++)
+        {
+            for(j = 0; j < n; j++)
+            {
+                scanf("%d", &matriks1[i][j]);
+            }
+        }
+
+        printf("Masukkan elemen matriks kedua: \n");
+        for(i = 0; i < p; i++)
+        {
+            for(j = 0; j < q; j++)
+            {
+                scanf("%d", &matriks2[i][j]);
+            }
+        }
+
+        for(i = 0; i < m; i++)
+        {
+            for(j = 0; j < q; j++)
+            {
+                for(k = 0; k < p; k++)
+                {
+                    jumlah = jumlah + matriks1[i][k] * matriks2[k][j];
+                }
+                hasil[i][j] = jumlah;
+                jumlah = 0;
+            }
+        }
+
+        printf("Hasil perkalian matriks: \n");
+        for(i = 0; i < m; i++)
+        {
+            for(j = 0; j < q; j++)
+            {
+                printf("%d\t", hasil[i][j]);
+                Temp[i*6+j] = hasil[i][j];
+            }
+            printf("\n");
+        }
+        shmdt(Temp);
+        //shmctl(shmid, IPC_RMID, NULL);
+    }    
+    return 0;
+}
+```
 
 ### Penjelasan
 
@@ -227,6 +312,110 @@ Contoh :
 ![Untitled](https://user-images.githubusercontent.com/72689610/119249774-8046b100-bbc5-11eb-9832-5348131ba618.png)
 
 ### Pengerjaan
+```bash
+#include <stdio.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <stdlib.h>
+
+int banyak_data=24;
+int input_data_2b[24];
+int *Temp;
+
+long long jumlah(long long n, int sn) 
+{
+    long long hasil = 1;
+    for(long long a=0; a < sn; a++){
+        if(n - a <= 0)
+        {
+            hasil *= 1;
+        }
+
+        else
+        {
+            hasil *= (n-a);
+        }
+    }
+    return hasil;
+}
+
+typedef struct factorial
+{
+    int angka_matriks_2a;
+    int angka_matriks_2b;
+}factorial;
+
+void *faktorial(void *data)
+{
+    factorial *tmp = (factorial *)data;
+    // printf("\nangka: %d %d\n", tmp -> angka_matriks_2a, tmp -> angka_matriks_2b;); 
+    if(tmp -> angka_matriks_2a == 0 || tmp -> angka_matriks_2b == 0)
+    {    
+        printf("0\t");
+    }
+
+    else
+    {
+        printf("%lld\t", jumlah(tmp -> angka_matriks_2a, tmp -> angka_matriks_2b));
+    }
+}
+
+void main()
+{
+    pthread_t thread;
+    key_t key = 1234;
+    int shmid = shmget(key, sizeof(int)*24, IPC_CREAT | 0666);
+    Temp = shmat(shmid, NULL, 0);
+    
+    // for(int i=0;i<24;i++)
+    // {
+    //     printf("%d", Temp[i]);
+    // }
+
+    for(int i=0;i<24;i++)
+    {
+        printf("Masukkan data input[%d]:", i+1);
+        scanf("%d", &input_data_2b[i]);
+    }
+
+    for(int a = 0; a < banyak_data; a++){
+        if(a % 6 == 0){
+            printf("\n");
+        }
+        factorial *tes = (factorial*)malloc(sizeof(*tes)); 
+        tes->angka_matriks_2a = Temp[a];
+        tes->angka_matriks_2b = input_data_2b[a];
+        // tes->index = i;
+        pthread_create(&thread, NULL, faktorial, (void *)tes ); 
+        pthread_join(thread,NULL); 
+    }
+    printf("\n");
+
+    // for(int a=0;a<banyak_data;a++)
+    // {
+    //     for(i = 0; i < baris; i++)
+    //     {
+    //         for(j = 0; j < kolom; j++)
+    //         {
+    //             Tempat = arr[i][j];
+    //             loop = input_data_2b[a];
+    //             a++;
+    //             factorial *tes = (factorial*)malloc(sizeof(*tes));
+    //             tes->angka_matriks_2a = Tempat;
+    //             tes->angka_matriks_2b; = loop;
+    //             // tes->index = i;
+    //             pthread_create(&thread, NULL, faktorial, (void *)tes ); 
+    //             pthread_join(thread,NULL); 
+    //         }
+    //         printf("\n");
+    //     }    
+    // }
+    shmdt(Temp);
+    shmctl(shmid, IPC_RMID, NULL);
+}
+```
 
 ### Penjelasan
 
@@ -236,6 +425,121 @@ Contoh :
 Karena takut lag dalam pengerjaannya membantu Loba, Crypto juga membuat program (soal2c.c) untuk mengecek 5 proses teratas apa saja yang memakan resource komputernya dengan command “ps aux | sort -nrk 3,3 | head -5” (<b>Catatan!</b> : Harus menggunakan IPC Pipes)
 
 ### Pengerjaan
+```bash
+// This program is an example of how to run a command such as
+// ps aux | grep root | grep sbin
+// using C and Unix.
+
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+
+int pid;
+int pipe1[2];
+int pipe2[2];
+
+int main(int argc, char const *argv[]) 
+{
+    // create pipe1
+    if (pipe(pipe1) == -1) 
+    {
+        perror("bad pipe1");
+        exit(1);
+    }
+
+  // fork (ps aux)
+    if ((pid = fork()) == -1) 
+    {
+        perror("bad fork1");
+        exit(1);
+    } 
+    
+    else if (pid == 0) 
+    {
+        // stdin --> ps --> pipe1
+        // input from stdin (already done)
+        // output to pipe1
+        dup2(pipe1[1], 1);
+        // close fds
+        close(pipe1[0]);
+        close(pipe1[1]);
+        // exec
+        char *argv[] = {"ps", "aux", NULL};
+        execv("/bin/ps", argv);
+        // exec didn't work, exit
+        perror("bad exec ps");
+        _exit(1);
+    }
+    // parent
+
+    // create pipe2
+    if (pipe(pipe2) == -1) 
+    {
+        perror("bad pipe2");
+        exit(1);
+    }
+
+    // fork (grep root)
+    if ((pid = fork()) == -1) 
+    {
+        perror("bad fork2");
+        exit(1);
+    } 
+
+    else if (pid == 0) 
+    {
+        // pipe1 --> grep --> pipe2
+        // input from pipe1
+        dup2(pipe1[0], 0);
+        // output to pipe2
+        dup2(pipe2[1], 1);
+        // close fds
+        close(pipe1[0]);
+        close(pipe1[1]);
+        close(pipe2[0]);
+        close(pipe2[1]);
+        // exec
+        char *argv[] = {"sort", "-nrk", "3.3", NULL};
+        execv("/bin/sort", argv);
+        // exec didn't work, exit
+        perror("bad exec grep root");
+        _exit(1);
+    }
+    // parent
+
+    // close unused fds
+    close(pipe1[0]);
+    close(pipe1[1]);
+
+    // fork (grep sbin)
+    if ((pid = fork()) == -1) 
+    {
+        perror("bad fork3");
+        exit(1);
+    } 
+    
+    else if (pid == 0) 
+    {
+        // pipe2 --> grep --> stdout
+        // input from pipe2
+        dup2(pipe2[0], 0);
+        // output to stdout (already done)
+        // close fds
+        close(pipe2[0]);
+        close(pipe2[1]);
+        // exec
+        char *argv[] = {"head", "-5", NULL};
+        execv("/bin/head", argv);
+        // exec didn't work, exit
+        perror("bad exec grep sbin");
+        _exit(1);
+    }
+    // parent
+}
+
+```
 
 ### Penjelasan
 
