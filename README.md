@@ -367,7 +367,9 @@ shmdt(Temp);
 //shmctl(shmid, IPC_RMID, NULL);
 ```
 Pada bagian ini, hasil perkalian matriks yang tadi disimpan ke dalam variable hasil akan dipindahkan lagi ke dalam variable ```Temp```, dimana bentuk ```i*6+j``` adalah untuk mengubah bentuk array matriks dari 2 dimensi menjadi 1 dimensi. Variable ```Temp``` ini lah yang akan digunakan untuk melakukan ```shared memory``` dengan soal 2b karena hasil perkalian matriks dari soal 2a akan digunakan kembali di soal 2b.
+
 ### Output
+![Output no 2A](https://user-images.githubusercontent.com/72689610/119260599-bd2e9a00-bbfd-11eb-8735-6c6e62a51182.png)
 
 ## 2B
 Membuat program dengan menggunakan matriks output dari program sebelumnya (program soal2a.c) (<b>Catatan!</b> : gunakan shared memory). Kemudian matriks tersebut akan dilakukan perhitungan dengan matrix baru (input user) sebagai berikut contoh perhitungan untuk matriks yang ada. Perhitungannya adalah setiap cel yang berasal dari matriks A menjadi angka untuk faktorial, lalu cel dari matriks B menjadi batas maksimal faktorialnya matri(dari paling besar ke paling kecil) (<b>Catatan!</b> : gunakan thread untuk perhitungan di setiap cel).
@@ -579,6 +581,7 @@ for(int a = 0; a < banyak_data; a++)
 Pada bagian ini, setiap program mencetak hasil pada kolom 6 maka program akan melakukan enter terlebih dahulu sebelum melanjutkan pencetakan hasil berikutnya. Kemudian juga dilakukan pemanggilan hasil perkalian matriks pada soal2a melalui variable ```Temp``` yang kemudian akan dimasukkan ke dalam variable ```angka_matriks_2a```. Selain itu semua inputan user pada soal2b akan dimasukkan ke dalam variable ```angka_matriks_2b```. Pada bagian ini juga dilakukan pendeklarasian untuk melakukan thread pada setiap perhitungannya.
 
 ### Output
+![Output no 2B](https://user-images.githubusercontent.com/72689610/119260698-1d254080-bbfe-11eb-813b-dfecd393b438.png)
 
 ## 2C
 Karena takut lag dalam pengerjaannya membantu Loba, Crypto juga membuat program (soal2c.c) untuk mengecek 5 proses teratas apa saja yang memakan resource komputernya dengan command “ps aux | sort -nrk 3,3 | head -5” (<b>Catatan!</b> : Harus menggunakan IPC Pipes)
@@ -765,6 +768,7 @@ else if (pid == 0)
 Pada bagian ini, program akan menampilkan 5 data teratas yang memakan resource dengan urutan dari yang terbesar hingga yang terkecil.
 
 ### Output
+![Output no 2C](https://user-images.githubusercontent.com/72689610/119260731-4940c180-bbfe-11eb-8cf7-4aac78f26bb7.png)
 
 ## Kendala
 Tidak ada kendala dalam pengerjaan soal ini
