@@ -286,7 +286,87 @@ int main() {
 ```
 
 ### Penjelasan
+```bash
+ int matriks1[21][21], matriks2[21][21], hasil[21][21];
+ int i, j, k, m, n, p, q, jumlah = 0;
+ 
+ printf("Masukkan jumlah baris matriks pertama: ");
+ scanf("%d",&m);
 
+ printf("Masukkan jumlah kolom matriks pertama: ");
+ scanf("%d",&n);
+
+ printf("Masukkan jumlah baris matriks kedua: ");
+ scanf("%d",&p);
+
+ printf("Masukkan jumlah kolom matriks kedua: ");
+ scanf("%d",&q);
+```
+Pada bagian ini, dilakukan pendeklarasian berbagai macam variabel yang akan digunakan nantinya, Disini terdapat pendeklarasian untuk matriks - matriks yang akan digunakan yaitu matriks1 dimana sesuai soal memiliki atribut berupa baris sebanyak 4 dan kolom sebanyak 3. Kemudian terdapat matriks2 dimana sesuai soal memiliki atribut berupa baris sebanyak 3 dan kolom sebanyak 6. Masing - masing baris dan kolom untuk setiap matriks akan diinputkan sendiri oleh user.
+
+```bash
+ if(n != p)
+    {
+        printf("Matriks tidak dapat dikalikan satu sama lain.\n");
+    } 
+```
+Bagian ini hanya berfungsi sebagai exception, dimana sesuai aturan perkalian matriks jika jumlah kolom dari matriks1 tidak sama dengan jumlah baris dari matriks2 maka perkalian matriks tidak dapat dilakukan.
+
+```bash
+printf("Masukkan elemen matriks pertama: \n");
+for(i = 0; i < m; i++)
+{
+  for(j = 0; j < n; j++)
+  {
+    scanf("%d", &matriks1[i][j]);
+  }
+}
+```
+Pada bagian ini user akan melakukan penginputan elemen - elemen angka yang akan menyusun matriks1
+
+```bash
+ printf("Masukkan elemen matriks kedua: \n");
+for(i = 0; i < p; i++)
+{
+    for(j = 0; j < q; j++)
+    {
+      scanf("%d", &matriks2[i][j]);
+    }
+}
+```
+Pada bagian ini user akan melakukan penginputan elemen - elemen angka yang akan menyusun matriks2
+
+```bash
+for(i = 0; i < m; i++)
+{
+  for(j = 0; j < q; j++)
+  {
+      for(k = 0; k < p; k++)
+      {
+         jumlah = jumlah + matriks1[i][k] * matriks2[k][j];
+      }
+      hasil[i][j] = jumlah;
+      jumlah = 0;
+   }
+}
+```
+Pada bagian ini dilakukan operasi perkalian antara matriks1 dan matriks2, dimana hasil dari perkalian akan disimpan ke dalam variable jumlah. Setelah disimpan di dalam variable jumlah, hasil perkalian akan dipassing lagi ke variable ```hasil``` dan variable ```jumlah``` nilainya di set kembali menjadi 0 untuk menyimpan hasil perkalian berikutnya.
+
+```bash
+printf("Hasil perkalian matriks: \n");
+for(i = 0; i < m; i++)
+{
+   for(j = 0; j < q; j++)
+   {
+     printf("%d\t", hasil[i][j]);
+     Temp[i*6+j] = hasil[i][j];
+   }
+   printf("\n");
+}
+shmdt(Temp);
+//shmctl(shmid, IPC_RMID, NULL);
+```
+Pada bagian ini, hasil perkalian matriks yang tadi disimpan ke dalam variable hasil akan dipindahkan lagi ke dalam variable ```Temp```, dimana bentuk ```i*6+j``` adalah untuk mengubah bentuk array matriks dari 2 dimensi menjadi 1 dimensi. Variable ```Temp``` ini lah yang akan digunakan untuk melakukan ```shared memory``` dengan soal 2b karena hasil perkalian matriks dari soal 2a akan digunakan kembali di soal 2b.
 ### Output
 
 ## 2B
@@ -418,6 +498,85 @@ void main()
 ```
 
 ### Penjelasan
+```bash
+int banyak_data=24;
+int input_data_2b[24];
+int *Temp;
+```
+Pada bagian ini dilakukan pendeklarasian beberapa variable, yang pertama adalah ``` banyak_data``` yang di set sebanyak 24 karena hasil perkalian matriks di soal 2a bentuk matriksnya adalah 4*6 yang berarti terdapat 24 elemen. Variable yang kedua adalah ```input_data_2b``` dengan array sebanyak 24 untuk menyamakan jumlah elemennya dengan jumlah elemen dari hasil perkalian matriks pada soal 2a. Variable yang ketiga adalah ```Temp``` yang berbentuk pointer yang akan digunakan untuk melakukan shared memory (pemanggilan hasil perkalian matriks) dengan soal 2a.
+
+```bash
+typedef struct factorial
+{
+    int angka_matriks_2a;
+    int angka_matriks_2b;
+}factorial;
+```
+Untuk soal ini, saya menggunakan struct dimana pada bagian ini saya melakukan pendeklarasian variable ```angka_matriks_2a``` untuk menyimpan nilai hasil perkalian matriks dari soal 2a dan variable ```angka_matriks_2b``` untuk menyimpan hasil inputan angka dari user pada soal 2b.
+
+```bash
+void *faktorial(void *data)
+{
+    factorial *tmp = (factorial *)data;
+    // printf("\nangka: %d %d\n", tmp -> angka_matriks_2a, tmp -> angka_matriks_2b;); 
+    if(tmp -> angka_matriks_2a == 0 || tmp -> angka_matriks_2b == 0)
+    {    
+        printf("0\t");
+    }
+
+    else
+    {
+        printf("%lld\t", jumlah(tmp -> angka_matriks_2a, tmp -> angka_matriks_2b));
+    }
+}
+```
+Pada bagian ini digunakan percabangan untuk melakukan pendeklarasian syarat perhitungan agar sesuai dengan hasil yang diminta oleh soal. Pertama diketahui bahwa jika salah satu angka baik pada hasil perkalian matriks pada soal2a maupun pada inputan user di soal2b nilainya adalah 0, maka program akan langsung mencetak hasilnya adalah 0. Jika kondisi sebelumnya tidak terpenuhi, maka program akan menjalankan fungsi ```jumlah``` dengan parameternya adalah ```angka_matriks_2a``` (hasil perkalian matriks pada soal2a) dan ```angka_matriks_2b``` (inputan user pada soal 2b).
+
+```bash
+long long jumlah(long long n, int sn) 
+{
+    long long hasil = 1;
+    for(long long a=0; a < sn; a++){
+        if(n - a <= 0)
+        {
+            hasil *= 1;
+        }
+
+        else
+        {
+            hasil *= (n-a);
+        }
+    }
+    return hasil;
+}
+```
+Fungsi jumlah berfungsi untuk melakukan operasi faktorial sesuai dengan limit tertentu, dimana hasil dari operasi faktorial akan disimpan di dalam variable ```hasil```. Percabangan yang pertama berfungsi untuk kondisi ketika nilai elemen indeks tertentu pada hasil perkalian matriks dari soal2a lebih kecil daripada nilai inputan user pada soal2b. Jika kondisi di atas tidak terpenuhi, maka program akan menjalankan operasi matriks seperti biasa.
+
+Berikut adalah fungsi source code di dalam fungsi main.
+```bash
+for(int i=0;i<24;i++)
+{
+  printf("Masukkan data input[%d]:", i+1);
+  scanf("%d", &input_data_2b[i]);
+}
+```
+Pada bagian ini, user akan menginputkan angka-angka sebanyak 24 elemen yang akan dioperasikan dengan masing - masing elemen dari hasil perkalian matriks pada soal 2a.
+
+```bash
+for(int a = 0; a < banyak_data; a++)
+{
+  if(a % 6 == 0){
+    printf("\n");
+  }
+  factorial *tes = (factorial*)malloc(sizeof(*tes)); 
+  tes->angka_matriks_2a = Temp[a];
+  tes->angka_matriks_2b = input_data_2b[a];
+  // tes->index = i;
+  pthread_create(&thread, NULL, faktorial, (void *)tes ); 
+        pthread_join(thread,NULL); 
+}
+```
+Pada bagian ini, setiap program mencetak hasil pada kolom 6 maka program akan melakukan enter terlebih dahulu sebelum melanjutkan pencetakan hasil berikutnya. Kemudian juga dilakukan pemanggilan hasil perkalian matriks pada soal2a melalui variable ```Temp``` yang kemudian akan dimasukkan ke dalam variable ```angka_matriks_2a```. Selain itu semua inputan user pada soal2b akan dimasukkan ke dalam variable ```angka_matriks_2b```. Pada bagian ini juga dilakukan pendeklarasian untuk melakukan thread pada setiap perhitungannya.
 
 ### Output
 
@@ -542,6 +701,68 @@ int main(int argc, char const *argv[])
 ```
 
 ### Penjelasan
+```bash
+else if (pid == 0) 
+{
+   // stdin --> ps --> pipe1
+   // input from stdin (already done)
+   // output to pipe1
+   dup2(pipe1[1], 1);
+   // close fds
+   close(pipe1[0]);
+   close(pipe1[1]);
+   // exec
+   char *argv[] = {"ps", "aux", NULL};
+   execv("/bin/ps", argv);
+   // exec didn't work, exit
+   perror("bad exec ps");
+   _exit(1);
+}
+```
+Pada bagian ini, program akan menunjukkan list semua proses yang sedang berjalan sekaligus dengan status dan penggunaan sumber dayanya.
+
+```bash
+else if (pid == 0) 
+{
+  // pipe1 --> grep --> pipe2
+  // input from pipe1
+  dup2(pipe1[0], 0);
+  // output to pipe2
+  dup2(pipe2[1], 1);
+  // close fds
+  close(pipe1[0]);
+  close(pipe1[1]);
+  close(pipe2[0]);
+  close(pipe2[1]);
+  // exec
+  char *argv[] = {"sort", "-nrk", "3.3", NULL};
+  execv("/bin/sort", argv);
+  // exec didn't work, exit
+  perror("bad exec grep root");
+  _exit(1);
+}
+```
+Pada bagian ini, program akan melakukan sort atau pengurutan penampilan data pada list.
+
+```bash
+else if (pid == 0) 
+{
+    // pipe2 --> grep --> stdout
+    // input from pipe2
+    dup2(pipe2[0], 0);
+    // output to stdout (already done)
+    // close fds
+    close(pipe2[0]);
+    close(pipe2[1]);
+    // exec
+    char *argv[] = {"head", "-5", NULL};
+    execv("/bin/head", argv);
+    // exec didn't work, exit
+    perror("bad exec grep sbin");
+    _exit(1);
+}
+```
+Pada bagian ini, program akan menampilkan 5 data teratas yang memakan resource dengan urutan dari yang terbesar hingga yang terkecil.
 
 ### Output
 
@@ -551,7 +772,7 @@ Tidak ada kendala dalam pengerjaan soal ini
 # --- No 3 ---
 Seorang mahasiswa bernama Alex sedang mengalami masa gabut. Di saat masa gabutnya, ia memikirkan untuk merapikan sejumlah file yang ada di laptopnya. Karena jumlah filenya terlalu banyak, Alex meminta saran ke Ayub. Ayub menyarankan untuk membuat sebuah program C agar file-file dapat dikategorikan. Program ini akan memindahkan file sesuai ekstensinya ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
 
-Contoh apabila program dijalankan:
+Contoh apabila program dijalankan :
 ```
 # Program soal3 terletak di /home/izone/soal3
 $ ./soal3 -f path/to/file1.jpg path/to/file2.c path/to/file3.zip
