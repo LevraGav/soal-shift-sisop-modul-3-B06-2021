@@ -12,7 +12,7 @@ Bayu Adjie Sidharta | 05111940000172
 - [Soal](https://docs.google.com/document/d/1ud1JyncoSDAo5hA03wPvjn7QBHPUeUG1eBJ8ETtq2dQ/edit)
 - [Jawaban Soal 1](https://github.com/LevraGav/soal-shift-sisop-modul-3-B06-2021/tree/main/soal1)
 - [Jawaban Soal 2](https://github.com/LevraGav/soal-shift-sisop-modul-3-B06-2021/tree/main/soal2)
-- [Jawaban Soal 3]()
+- [Jawaban Soal 3](https://github.com/LevraGav/soal-shift-sisop-modul-3-B06-2021/tree/main/soal3)
 
 # --- No 1 ---
 Keverk adalah orang yang cukup ambisius dan terkenal di angkatannya. Sebelum dia menjadi ketua departemen di HMTC, dia pernah mengerjakan suatu proyek dimana keverk tersebut meminta untuk membuat server database buku. Proyek ini diminta agar dapat digunakan oleh pemilik aplikasi dan diharapkan bantuannya dari pengguna aplikasi ini.
