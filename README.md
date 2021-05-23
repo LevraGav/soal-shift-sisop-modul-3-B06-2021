@@ -224,7 +224,7 @@ A  | B | Angka - Angka Faktorial
 4 | 6 | 4 3 2 1
 
 Contoh :
-
+![Untitled](https://user-images.githubusercontent.com/72689610/119249774-8046b100-bbc5-11eb-9832-5348131ba618.png)
 
 ### Pengerjaan
 
@@ -233,13 +233,16 @@ Contoh :
 ### Output
 
 ## 2C
-Membuat program perkalian matrix (4x3 dengan 3x6) dan menampilkan hasilnya. Matriks nantinya akan berisi angka 1-20 (tidak perlu dibuat filter angka).
+Karena takut lag dalam pengerjaannya membantu Loba, Crypto juga membuat program (soal2c.c) untuk mengecek 5 proses teratas apa saja yang memakan resource komputernya dengan command “ps aux | sort -nrk 3,3 | head -5” (<b>Catatan!</b> : Harus menggunakan IPC Pipes)
 
 ### Pengerjaan
 
 ### Penjelasan
 
 ### Output
+
+## Kendala
+Tidak ada kendala dalam pengerjaan soal ini
 
 # --- No 3 ---
 Seorang mahasiswa bernama Alex sedang mengalami masa gabut. Di saat masa gabutnya, ia memikirkan untuk merapikan sejumlah file yang ada di laptopnya. Karena jumlah filenya terlalu banyak, Alex meminta saran ke Ayub. Ayub menyarankan untuk membuat sebuah program C agar file-file dapat dikategorikan. Program ini akan memindahkan file sesuai ekstensinya ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
