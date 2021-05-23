@@ -186,6 +186,61 @@ Hapus : File2.ektensi (id:pass)
 - Tidak tahu kapan pake theading
 - ETS
 
+# --- No 2 ---
+Crypto (kamu) adalah teman Loba. Suatu pagi, Crypto melihat Loba yang sedang kewalahan mengerjakan tugas dari bosnya. Karena Crypto adalah orang yang sangat menyukai tantangan, dia ingin membantu Loba mengerjakan tugasnya. Detil dari tugas tersebut adalah :
+
+### Note
+- Semua matriks berasal dari input ke program. 
+- Dilarang menggunakan system()
+
+Detil dari tugas tersebut adalah :
+
+## 2A
+Membuat program perkalian matrix (4x3 dengan 3x6) dan menampilkan hasilnya. Matriks nantinya akan berisi angka 1-20 (tidak perlu dibuat filter angka).
+
+### Pengerjaan
+
+### Penjelasan
+
+### Output
+
+## 2B
+Membuat program dengan menggunakan matriks output dari program sebelumnya (program soal2a.c) (<b>Catatan!</b> : gunakan shared memory). Kemudian matriks tersebut akan dilakukan perhitungan dengan matrix baru (input user) sebagai berikut contoh perhitungan untuk matriks yang ada. Perhitungannya adalah setiap cel yang berasal dari matriks A menjadi angka untuk faktorial, lalu cel dari matriks B menjadi batas maksimal faktorialnya matri(dari paling besar ke paling kecil) (<b>Catatan!</b> : gunakan thread untuk perhitungan di setiap cel).
+
+<b>Ketentuan</b>
+```
+If a >= b  -> a!/(a-b)!
+If b > a -> a!
+If 0 -> 0
+```
+Contoh :
+A  | B | Angka - Angka Faktorial
+---------|-------|---------------
+4 | 4 | 4 3 2 1
+4 | 5 | 4 3 2 1
+4 | 3 | 4 3 2
+4 | 0 | 0
+0 | 4 | 0
+4 | 6 | 4 3 2 1
+
+Contoh :
+
+
+### Pengerjaan
+
+### Penjelasan
+
+### Output
+
+## 2C
+Membuat program perkalian matrix (4x3 dengan 3x6) dan menampilkan hasilnya. Matriks nantinya akan berisi angka 1-20 (tidak perlu dibuat filter angka).
+
+### Pengerjaan
+
+### Penjelasan
+
+### Output
+
 # --- No 3 ---
 Seorang mahasiswa bernama Alex sedang mengalami masa gabut. Di saat masa gabutnya, ia memikirkan untuk merapikan sejumlah file yang ada di laptopnya. Karena jumlah filenya terlalu banyak, Alex meminta saran ke Ayub. Ayub menyarankan untuk membuat sebuah program C agar file-file dapat dikategorikan. Program ini akan memindahkan file sesuai ekstensinya ke dalam folder sesuai ekstensinya yang folder hasilnya terdapat di working directory ketika program kategori tersebut dijalankan.
 
