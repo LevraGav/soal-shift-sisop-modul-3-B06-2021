@@ -304,7 +304,9 @@ int main(int argc, char const *argv[]) {
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    
+    FILE* dir = fopen("files.tsv","a");
+    fclose("files.tsv","a");
+
     DIR* dir = opendir("files");
     if (dir) {
         closedir(dir);
