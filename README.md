@@ -51,19 +51,220 @@ id2:password2
 ```
 
 ### Pengerjaan
+MultiConnection
+```bash
+int main(int argc, char const *argv[]) {  
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    
+    DIR* dir = opendir("files");
+    if (dir) {
+        closedir(dir);
+    } else if (ENOENT == errno) {
+        mkdir("files", 0777);
+    }
+      
+    if ((master_socket = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
+    }
+      
+    if (setsockopt(master_socket, SOL_SOCKET, SO_REUSEADDR, &opt,sizeof(opt)) <0 ) {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
+    }
 
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+      
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0) {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
+    }
+
+    if (listen(master_socket, 3) < 0) {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    while(1) {
+        //clear the socket set 
+        FD_ZERO(&readfds);  
+     
+        //add master socket to set 
+        FD_SET(master_socket, &readfds);  
+        max_sd = master_socket;  
+             
+        //add child sockets to set 
+        for ( i = 0 ; i < max_clients ; i++)  
+        {  
+            //socket descriptor 
+            sd = client_socket[i];  
+                 
+            //if valid socket descriptor then add to read list 
+            if(sd > 0)  
+                FD_SET( sd , &readfds);  
+                 
+            //highest file descriptor number, need it for the select function 
+            if(sd > max_sd)  
+                max_sd = sd;  
+        } 
+         //wait for an activity on one of the sockets , timeout is NULL , 
+        //so wait indefinitely 
+        activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);  
+       
+        if ((activity < 0) && (errno!=EINTR))  
+        {  
+            printf("select error");  
+        }  
+             
+        //If something happened on the master socket , 
+        //then its an incoming connection 
+        if (FD_ISSET(master_socket, &readfds))  
+        {  
+            if ((new_socket = accept(master_socket, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)  
+            {  
+                perror("accept");  
+                exit(EXIT_FAILURE);  
+            }
+             for (i = 0; i < max_clients; i++)  
+            {  
+                //if position is empty 
+                if( client_socket[i] == 0 )  
+                {  
+                    client_socket[i] = new_socket;  
+                    printf("Adding to list of sockets as %d\n" , i);  
+                         
+                    break;  
+                }  
+            }  
+        }
+        sd = client_socket[0];
+        connected = true;
+        printf("CONNECTED\n");
+        strcpy(sent,"Register / Login?\n");
+        printf("%s\n",sent);
+        send(new_socket,sent,strlen(sent),0);
+        memset(sent,0,sizeof(sent));
+        while(connected) {
+        ...
+        }
+```
+Server Register
+```bash
+    if (strcmp(command,"register")==0) {
+    printf("register\n");
+    strcpy(sent,"Register\nInput ID dan password dipisah oleh spasi\nEx: Bayu 123");
+    send(new_socket,sent,strlen(sent),0);
+    bRead();
+    addUser(recieve);
+    sends("Registrasi berhasil, silahkan login!\n");
+    continue;
+ }
+    
+void bRead() { // check Disconnects + Read vals
+    resR();
+    int check;
+    if ((check = read(sd,recieve,1024)) == 0){
+        connected=false;
+        loggedIn=false;
+        close(sd);
+        for(i=0;i<30;i++)
+        {
+            client_socket[i]=client_socket[i+1];
+        }
+        client_socket[29]=0;
+    }
+}
+
+void addUser(char str[]) {
+    printf("ADDUSER\n");
+    char idpass [100];
+    strcpy(idpass,str);
+    printf("%s\n",idpass);
+    FILE* file = fopen("akun.txt", "a") ;
+    fputs(idpass,file);
+    fclose(file);
+}
+
+void sends(char data[]) {
+    send(sd,data,strlen(data),0);
+    memset(sent,0,sizeof(sent));
+}
+```
+Client Register
+```bash
+void Reg() {
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    memset(recieve,0,sizeof(recieve));
+    char uname[100];
+    char pass[100];
+    scanf("%s %s",uname,pass);
+    sprintf(sent,"%s:%s\n",uname,pass);
+    send(soc,sent,strlen(sent),0);
+    memset(sent,0,sizeof(sent));
+    read(soc,recieve,1024);
+    printf("%s\n",recieve);
+    memset(recieve,0,sizeof(recieve));
+}
+```
 ### Penjelasan
+Soal no 1 mempunyai 2 bagian yaitu, multiple connections dan register melalui client dan di record di akun.txt  
+Untuk bagian 1 saya memodifikasi code dari geeks for geeks ![Socket Programming in C/C++: Handling multiple clients on server without multi threading](https://www.geeksforgeeks.org/socket-programming-in-cc-handling-multiple-clients-on-server-without-multi-threading/) dalam prograrm saya.
+Cara kerjanya adalah membuat queue of connections yang setiap kali ada client yang disconnect akan menconnect ke client selanjutnya. Setiap kali sebuah client connect ke server, ia akan dimasukan ke array tersebut.
 
+Untuk bagian 2 register, pertama client membaca input dari user yang berisi username dan password.
+```bash
+    char uname[100];
+    char pass[100];
+    scanf("%s %s",uname,pass);
+    sprintf(sent,"%s:%s\n",uname,pass);
+    send(soc,sent,strlen(sent),0);
+    memset(sent,0,sizeof(sent));
+```
+lalu input akan diparse sesuai format yaitu "username:password" lalu akan dikirim ke server.
+```bash
+    bRead();
+    char idpass [100];
+    strcpy(idpass,str);
+    printf("%s\n",idpass);
+    FILE* file = fopen("akun.txt", "a") ;
+    fputs(idpass,file);
+    fclose(file);
+```
+setelah itu akan di read melalui fungsi "bRead". fungsi ini adalah fungsi helper dimana jika server menemukan "0" atau connection terminated ia akan drop connection dan menggeser array dan connect ke client baru.  
+Lalu server membaca username dan password yang telah di parse lalu meng-append file tesebut ke line terakhir lalu close file.
+![image](https://user-images.githubusercontent.com/31591861/119263168-261b0f80-bc08-11eb-95be-56bf16702098.png)
 ### Output
-
+Setelah dijalankan file akun.txt akan menjadi seperti ini
+![image](https://user-images.githubusercontent.com/31591861/119263180-3206d180-bc08-11eb-84e4-1ea3bc69f4f9.png)
 ## 1B
 Sistem memiliki sebuah database yang bernama <b>files.tsv</b>. Isi dari <b>files.tsv</b> ini adalah <b>path file saat berada di server</b>, <b>publisher</b>, dan <b>tahun publikasi</b>. Setiap penambahan dan penghapusan file pada folder file yang bernama <b>FILES</b> pada server akan memengaruhi isi dari <b>files.tsv</b>. Folder <b>FILES</b> otomatis dibuat saat server dijalankan.
 
 ### Pengerjaan
-
+```bash
+int main(int argc, char const *argv[]) {  
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    
+    FILE* dir = fopen("files.tsv","a");
+    fclose("files.tsv","a");
+}
+```
 ### Penjelasan
-
+```bash
+int main(int argc, char const *argv[]) {  
+    FILE* dir = fopen("files.tsv","a");
+    fclose("files.tsv");
+}
+```
+Jika file tidak ada maka buat.  
+Jika ada karena append tidak ada yang dilakukan
 ### Output
+![image](https://user-images.githubusercontent.com/31591861/119263348-dee14e80-bc08-11eb-8c25-3a2dc9396feb.png)
 
 ## 1C
 Tidak hanya itu, Keverk juga diminta membuat fitur agar client dapat menambah file baru ke dalam server. Direktori <b>FILES</b> memiliki struktur direktori di bawah ini : 
@@ -89,7 +290,71 @@ Filepath:
 Kemudian, dari aplikasi client akan dimasukan data buku tersebut (perlu diingat bahwa Filepath ini merupakan <b>path file yang akan dikirim ke server</b>). Lalu client nanti akan melakukan pengiriman file ke aplikasi server dengan menggunakan socket. Ketika file diterima di server, maka row dari files.tsv akan bertambah sesuai dengan data terbaru yang ditambahkan.
 
 ### Pengerjaan
-
+Server
+```bash
+    void addFiles() { 
+    char publisher[1024] = {0};
+	char tahun[1024] = {0};
+	char path[1024] = {0};
+    sends("Publisher:\n");
+    bRead();
+    strcpy(publisher,recieve);
+    sends("Tahun Publish:\n");
+    bRead();
+    strcpy(tahun,recieve);
+    sends("Filepath:\n");
+    bRead();
+    strcpy(path,recieve);
+    char *ptr1;
+    char slash ='/';
+    ptr1 = strrchr( path, slash );
+    ptr1++;
+    char fname[100];
+    strcpy(fname,ptr1);
+    char ext[10];
+    char *ptr2;
+    char dot ='.';
+    ptr2 = strrchr( path, dot );
+    ptr2++;
+    strcpy(ext,ptr2);
+    char dir[300] = "/home/bayu/Documents/Prak3/files/";
+    strcat(dir,fname);
+    FILE* tsv = fopen("files.tsv","a");
+    char info[5000];
+    sprintf(info,"%s\t%s\t%s\t%s\t%s\n",fname,publisher,tahun,ext,path);
+    fputs(info,tsv);
+    fclose(tsv);
+    writefile(dir); 
+    sends("File berhasil ditambahkan\n");
+    FILE* log = fopen("running.log","a");
+    fprintf(log,"Tambah: %s %s",fname,upass);
+    fclose(log);
+}
+```
+Client
+```bash
+void addFiles() {
+    char temp[1024];
+    for (int i=0;i<3;i++) {
+        resR();
+        scanf("%s",temp);
+        temp[strcspn(temp,"\n")] =0;
+        sends(temp);
+    }
+    FILE *sfd = fopen(temp,"rb");  
+    char data[1024] = {0};
+    
+    while(1){
+        memset(data,0,1024);
+        size_t size = fread(data,sizeof(char),1024,sfd);
+        send(soc,data,1024,0);
+        break;
+    }
+    printf("break"); 
+    fclose(sfd);
+    resR();
+}
+```
 ### Penjelasan
 
 ### Output
